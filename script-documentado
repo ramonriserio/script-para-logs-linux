@@ -1,0 +1,81 @@
+Entendido. Você prefere comentários mais diretos e menos verbosos, focados no "o quê" e não no "como".
+
+Aqui está uma versão do script com documentação mais concisa:
+
+```bash
+#!/bin/bash
+
+# --- Configuração de Diretórios ---
+LOG_DIR="../myapp/logs"
+ARQUIVO_DIR="../myapp/logs-processados"
+TEMP_DIR="../myapp/logs-temp"
+
+# --- Preparação ---
+# Garante que os diretórios de saída e temporário existam
+mkdir -p $ARQUIVO_DIR
+mkdir -p $TEMP_DIR
+
+# Define o nome dos arquivos de saída com a data atual
+STATS_FILE="${ARQUIVO_DIR}/log_stats_$(date +%F).txt"
+COMBINED_LOG_FILE="${ARQUIVO_DIR}/logs_combinados_$(date +%F).log"
+FINAL_ARCHIVE_FILE="${ARQUIVO_DIR}/logs_$(date +%F).tar.gz"
+
+# --- Processamento ---
+# Encontra todos os arquivos .log e processa um por um
+find $LOG_DIR -name "*.log" -print0 | while IFS= read -r -d '' arquivo; do
+    
+    # 1. Filtra: Extrai apenas linhas com "ERROR" ou "SENSITIVE_DATA"
+    grep "ERROR" $arquivo > "${arquivo}.filtrado"
+    grep "SENSITIVE_DATA" $arquivo >> "${arquivo}.filtrado"
+
+    # 2. Anonimiza: Remove (redige) dados sensíveis
+    sed -i 's/User password is .*/User password is REDACTED/g' "${arquivo}.filtrado"
+    sed -i 's/User password reset request with token .*/User password reset request with token REDACTED/g' "${arquivo}.filtrado"
+    sed -i 's/API key leaked: .*/API key leaked: REDACTED/g' "${arquivo}.filtrado"
+    sed -i 's/User credit card last four digits: .*/User credit card last four digits: REDACTED/g' "${arquivo}.filtrado"
+    sed -i 's/User session initiated with token: .*/User session initiated with token: REDACTED/g' "${arquivo}.filtrado"
+
+    # 3. Otimiza: Ordena e remove linhas duplicadas
+    sort "${arquivo}.filtrado" -o "${arquivo}.filtrado"
+    uniq "${arquivo}.filtrado" > "${arquivo}.unico"
+
+    # 4. Gera Estatísticas: Conta linhas e palavras do arquivo limpo
+    num_palavras=$(wc -w < "${arquivo}.unico")
+    num_linhas=$(wc -l < "${arquivo}.unico")
+    nome_arquivo=$(basename "${arquivo}.unico")
+
+    # 5. Registra Estatísticas: Salva contagem no arquivo de stats
+    echo "Arquivo: $nome_arquivo" >> "$STATS_FILE"
+    echo "Número de linhas: $num_linhas" >> "$STATS_FILE"
+    echo "Número de palavras: $num_palavras" >> "$STATS_FILE"
+    echo "--------------------------" >> "$STATS_FILE"
+
+    # 6. Consolida: Adiciona tags [FRONTEND]/[BACKEND] e junta no log combinado
+    if [[ "$nome_arquivo" == *frontend* ]]; then
+        sed 's/^/[FRONTEND] /' "${arquivo}.unico" >> "$COMBINED_LOG_FILE"
+    elif [[ "$nome_arquivo" == *backend* ]]; then
+        sed 's/^/[BACKEND] /' "${arquivo}.unico" >> "$COMBINED_LOG_FILE"
+    else
+        cat "${arquivo}.unico" >> "$COMBINED_LOG_FILE"
+    fi
+    
+    # Limpeza dos arquivos intermediários no diretório de log original
+    # rm "${arquivo}.filtrado" "${arquivo}.unico" # Descomente se desejar limpar
+done
+
+# --- Finalização ---
+# Ordena o log combinado final (pela segunda coluna, ex: timestamp)
+sort -k2 "$COMBINED_LOG_FILE" -o "$COMBINED_LOG_FILE"
+
+# Move os arquivos finais para o diretório temporário para compactação
+mv "$COMBINED_LOG_FILE" "$TEMP_DIR/"
+mv "$STATS_FILE" "$TEMP_DIR/"
+
+# Cria o arquivo .tar.gz final com o conteúdo do diretório temporário
+tar -czf "$FINAL_ARCHIVE_FILE" -C "$TEMP_DIR" .
+
+# Limpa o diretório temporário
+rm -r "$TEMP_DIR"
+
+echo "Processamento de logs concluído. Arquivo salvo em: $FINAL_ARCHIVE_FILE"
+```
