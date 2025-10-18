@@ -229,12 +229,12 @@ Teste a opção `-r` para ordenar o arquivo de forma decrescente:
 ```
 sort -r myapp-backend.log.filtrado
 ```
-Como o `sort` não salva a ordenação diretamente no arquivo, podemos usar a opção -o para salvar sua saída em um arquivo chamado `logs-ordenados`:
+Como o `sort` não salva a ordenação diretamente no arquivo, podemos usar a opção `-o` para salvar sua saída em um arquivo chamado `logs-ordenados`:
 
 ```
 sort myapp-backend.log.filtrado -o logs-ordenados
 ```
-Vá para o _script_ de monitoramento de _logs_ e adicione o comando sort. Lembre-se de alterar o comando no _script_ com as variáveis adequadas:
+Vá para o _script_ de monitoramento de _logs_ e adicione o comando `sort`. Lembre-se de alterar o comando no _script_ com as variáveis adequadas:
 
 ```
 sort “${arquivo}.filtrado” -o “${arquivo}.filtrado”
@@ -246,7 +246,7 @@ Abra a pasta de _logs_ e veja que agora os arquivos de _logs_ estão ordenados:
 ```
 cat myapp-backend.log.filtrado
 ```
-Na pasta de _logs_, use o comando uniq para remover as linhas duplicadas de um arquivo `.filtrado`:
+Na pasta de _logs_, use o comando `uniq` para remover as linhas duplicadas de um arquivo `.filtrado`:
 
 ```
 uniq myapp-backend.log.filtrado
@@ -258,7 +258,7 @@ Para salvar a saída desse comando em um arquivo chamado `logs-sem-duplicatas`, 
 ```
 uniq myapp-backend.log.filtrado > logs-sem-duplicatas
 ```
-Abra o _script_ e adicione o comando uniq dentro do laço de repetição. Substitua os nomes dos arquivos pelas devidas variáveis, criando um arquivo com o final `.unico` que salvará a saída do comando:
+Abra o _script_ e adicione o comando `uniq` dentro do laço de repetição. Substitua os nomes dos arquivos pelas devidas variáveis, criando um arquivo com o final `.unico` que salvará a saída do comando:
 
 ```
 uniq “${arquivo}.filtrado” > “${arquivo}.unico”
@@ -282,7 +282,8 @@ As letras indicam quais operações foram aplicadas, podendo ser:
 - d: Linha deletada no arquivo original
 - c: Linha alterada (com mudanças);
 - a: Linha adicionada no arquivo modificado.
-- Os números indicam as linhas nos arquivos.
+
+Os números indicam as linhas nos arquivos.
 Experimente também utilizar o `diff` para comparar um arquivo com ele mesmo. Assim, a saída será nula, indicando que não há nenhuma diferença entre os arquivos:
 
 ```
@@ -290,7 +291,7 @@ diff myapp-backend.log myapp-backend.log
 ```
 
 ## 5. Analisando informações de logs
-Agora aprenderemos a extrair dados quantitativos de arquivos com o comando wc, armazenar essas informações em variáveis e registrá-las em um arquivo estatístico. Também concatenaremos múltiplos arquivos .unico em um único arquivo combinado com `cat`, refatoraremos nomes usando `sed`, e criaremos um diretório específico para armazenar os _logs_ processados. Utilizaremos estruturas condicionais `if` para adicionar tags de origem às linhas dos _logs_ combinados, como [FRONTEND] e [BACKEND], e finalizaremos ordenando o arquivo pela data presente na segunda coluna. Depois incorporaremos esses comandos ao _script_ de monitoramento.
+Agora aprenderemos a extrair dados quantitativos de arquivos com o comando `wc`, armazenar essas informações em variáveis e registrá-las em um arquivo estatístico. Também concatenaremos múltiplos arquivos .unico em um único arquivo combinado com `cat`, refatoraremos nomes usando `sed`, e criaremos um diretório específico para armazenar os _logs_ processados. Utilizaremos estruturas condicionais `if` para adicionar tags de origem às linhas dos _logs_ combinados, como [FRONTEND] e [BACKEND], e finalizaremos ordenando o arquivo pela data presente na segunda coluna. Depois incorporaremos esses comandos ao _script_ de monitoramento.
 
 No terminal, na pasta dos arquivos de  _logs_, rode o comando a seguir para obter a quantidade de linhas de um dos arquivos de  _logs_ com final `.unico`:
 
@@ -390,9 +391,9 @@ sed -i ‘s/log_stats.txt/”${ARQUIVO_DIR}\/log_stats_$(date +%F).txt”/’ pr
 ```
 Abra novamente o _script_ e verifique se a substituição foi feita. Depois saia do _script_ e execute-o.
 
-Vá para o diretório /myapp/logs-processados e verifique os arquivos criados.
+Vá para o diretório `/myapp/logs-processados` e verifique os arquivos criados.
 
-Abra o _script_ e adicione um bloco condicional if para salvar os  _logs_ no arquivo final de  _logs_ combinados com uma tag que indique se o _log_ é do _frontend_ ou do _backend_:
+Abra o _script_ e adicione um bloco condicional `if` para salvar os  _logs_ no arquivo final de  _logs_ combinados com uma _tag_ que indique se o _log_ é do _frontend_ ou do _backend_:
 
 ```
 if [[ “$nome_arquivo” == *frontend* ]]; then
@@ -408,7 +409,7 @@ Lembre-se de excluir a linha a seguir que estará antes do bloco `if`:
 ```
 cat “${arquivo}.unico” >> “${ARQUIVO_DIR}/logs_combinados_$(date +%F).log”
 ```
-Fora do laço de repetição, adicione um sort para ordenar os  _logs_ do arquivo final `logs-combinados`:
+Fora do laço de repetição, adicione um `sort` para ordenar os  _logs_ do arquivo final `logs-combinados`:
 
 ```
 sort -k2 “${ARQUIVO_DIR}/logs_combinados_$(date +%F).log” -o “${ARQUIVO_DIR}/logs_combinados_$(date +%F).log”
@@ -416,9 +417,9 @@ sort -k2 “${ARQUIVO_DIR}/logs_combinados_$(date +%F).log” -o “${ARQUIVO_DI
 Salve o _script_ e remova a pasta `logs-processados`. Depois execute o _script_ e verifique o arquivo de _logs_ combinados na pasta `logs-processados`.
 
 ## 6. Compactando e agendando logs
-Agora aprenderemos a compactar e descompactar arquivos no formato .tar.gz utilizando o comando tar, além de agendar a execução automática de _script_s com o utilitário cron. Incluiremos uma etapa de compactação dos arquivos finais de _logs_ processados, criaremos uma variável para definir o diretório de destino, testaremos os comandos de listagem e extração do conteúdo compactado, e configuraremos o cron para automatizar a execução do _script_ de monitoramento de _logs_ periodicamente.
+Agora aprenderemos a compactar e descompactar arquivos no formato .`tar.gz` utilizando o comando `tar`, além de agendar a execução automática de _script_s com o utilitário _cron_. Incluiremos uma etapa de compactação dos arquivos finais de _logs_ processados, criaremos uma variável para definir o diretório de destino, testaremos os comandos de listagem e extração do conteúdo compactado, e configuraremos o _cron_ para automatizar a execução do _script_ de monitoramento de _logs_ periodicamente.
 
-No terminal, na pasta myapp, rode o comando a seguir para compactar a pasta `logs-processados`:
+No terminal, na pasta `myapp`, rode o comando a seguir para compactar a pasta `logs-processados`:
 
 ```
 tar -czf logs-compactados.tar.gz logs-processados/
@@ -445,7 +446,7 @@ Adicione um comando para renovar a pasta temporária:
 ```
 rm -r “$TEMP_DIR”
 ```
-Salve o _script_ e rode-o. Depois vá na pasta de logs-processados e veja que o arquivo compactado foi criado.
+Salve o _script_ e rode-o. Depois vá na pasta de `logs-processados` e veja que o arquivo compactado foi criado.
 
 Nessa pasta, no terminal rode o comando a seguir para verificar o conteúdo do arquivo compactado:
 
@@ -488,8 +489,8 @@ Em seguida, complementamos nosso _script_, adicionando um laço de repetição w
 
 Utilizamos o grep para buscar pelos _logs_ que continham informações de erro e dados sensíveis. Utilizamos o comando sed para substituir textos dentro do nosso arquivo de _logs_ filtrados. Realizamos também a ordenação desse arquivo conforme a data nas linhas dos _logs_ e removemos duplicatas desses arquivos.
 
-Aprendemos como extrair dados desses arquivos, fazendo a extração do número de palavras e o número de linhas através do comando wc. Também criamos um novo arquivo que armazena esses dados estatísticos a respeito dos nossos arquivos de _log_.
+Aprendemos como extrair dados desses arquivos, fazendo a extração do número de palavras e o número de linhas através do comando `wc`. Também criamos um novo arquivo que armazena esses dados estatísticos a respeito dos nossos arquivos de _log_.
 
-Além disso, estudamos como utilizar condicionais em _script_s do Linux. Verificamos se o nome dos arquivos que estavam sendo processados continha palavras específicas como frontend e backend. Então, realizamos a ação de adicionar uma _tag_ no início da linha desses arquivos de _logs_, indicando se é um _log_ do frontend ou do backend.
+Além disso, estudamos como utilizar condicionais em _script_s do Linux. Verificamos se o nome dos arquivos que estavam sendo processados continha palavras específicas como _frontend_ e _backend_. Então, realizamos a ação de adicionar uma _tag_ no início da linha desses arquivos de _logs_, indicando se é um _log_ do _frontend_ ou do _backend_.
 
-Também concatenamos nosso arquivo em um arquivo único de _logs_ combinados, ordenamos esse arquivo de _logs_ combinados e aprendemos a compactar e descompactar esse arquivo para facilitar o envio. Por fim, vimos como podemos agendar tarefas no Linux através do agendamento da execução do nosso _script_ por meio do serviço Cron.
+Também concatenamos nosso arquivo em um arquivo único de _logs_ combinados, ordenamos esse arquivo de _logs_ combinados e aprendemos a compactar e descompactar esse arquivo para facilitar o envio. Por fim, vimos como podemos agendar tarefas no Linux através do agendamento da execução do nosso _script_ por meio do serviço _Cron_.
